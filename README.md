@@ -1,4 +1,16 @@
-# VerdeCompra CEASA
+# Verdurão Ribeiro - Controle CEASA
+
+O sistema inclui operação multi-loja, módulo financeiro, dashboards geral/individual, comprovantes e histórico de alterações.
+
+## Atualizar uma instalação existente
+
+Execute no SQL Editor:
+
+```text
+supabase/migrations/002_multi_store_finance.sql
+```
+
+A migração preserva os dados atuais. Consulte `GUIA_FINANCEIRO_E_LOJAS.md`.
 
 Aplicativo React/Vite para controle colaborativo de compras no CEASA, com autenticação, banco PostgreSQL, permissões por perfil e sincronização em tempo real via Supabase.
 
