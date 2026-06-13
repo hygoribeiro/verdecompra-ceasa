@@ -233,6 +233,8 @@ Produtos da Santa Rita e produtos do Taquari são separados. Se necessário, cad
 
 Criar uma nova lista não apaga as listas anteriores. Elas permanecem disponíveis em **Listas**.
 
+Se a loja possuir uma **Lista base**, a nova lista já será criada com os mesmos produtos, quantidades planejadas, ordem e configurações de preço. Quantidade comprada, peso, valor pago, qualidade, observação e status da compra começam zerados para não misturar compras diferentes.
+
 ---
 
 # 9. Como adicionar produtos à lista
@@ -382,6 +384,19 @@ Se o valor pago ou o peso necessário não estiver informado, o painel mostrará
 4. Clique em **Abrir lista**.
 
 As listas abertas e finalizadas são identificadas pelo status.
+
+## Como definir uma lista base
+
+1. Selecione a loja desejada no topo, por exemplo **Taquari**.
+2. Abra **Listas**.
+3. Localize a lista que contém os produtos que devem aparecer nas próximas compras.
+4. Clique em **Usar como base**.
+5. Confirme a escolha.
+6. Confira se apareceu a identificação **Lista base**.
+
+Somente uma lista pode ser a base de cada loja. Para trocar a base, clique em **Usar como base** em outra lista. Para deixar de usar uma base, clique em **Remover base**.
+
+A lista base de Taquari não interfere na lista base de Santa Rita.
 
 ---
 
