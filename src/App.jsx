@@ -23,24 +23,27 @@ function Totals({ items, margins }) {
 }
 
 export default function App() {
-  const [session, setSession] = useState(null), [profile, setProfile] = useState(null), [products, setProducts] = useState([]), [lists, setLists] = useState([]), [items, setItems] = useState([]), [margins, setMargins] = useState({}), [view, setView] = useState("lista"), [search, setSearch] = useState(""), [category, setCategory] = useState(""), [loading, setLoading] = useState(true), [notice, setNotice] = useState(""), [dark, setDark] = useState(false);
-  const activeList = lists.find(l => l.status === "aberta") || lists[0];
+  const [session, setSession] = useState(null), [profile, setProfile] = useState(null), [products, setProducts] = useState([]), [lists, setLists] = useState([]), [selectedListId, setSelectedListId] = useState(null), [items, setItems] = useState([]), [margins, setMargins] = useState({}), [view, setView] = useState("lista"), [search, setSearch] = useState(""), [category, setCategory] = useState(""), [loading, setLoading] = useState(true), [notice, setNotice] = useState(""), [dark, setDark] = useState(false);
+  const activeList = lists.find(l => l.id === selectedListId) || lists.find(l => l.status === "aberta") || lists[0];
   const isAdmin = profile?.role === "administrador", canPlan = ["administrador", "funcionario"].includes(profile?.role), canBuy = ["administrador", "comprador"].includes(profile?.role);
+  const canEditPlan = canPlan && activeList?.status === "aberta", canEditPurchase = canBuy && activeList?.status === "aberta";
   const flash = (text) => { setNotice(text); setTimeout(() => setNotice(""), 2500); };
   const load = useCallback(async () => {
     if (!session) return;
     const [pr, ps, ls, ms] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", session.user.id).single(),
       supabase.from("products").select("*").order("name"),
-      supabase.from("shopping_lists").select("*").order("created_at", { ascending: false }),
+      supabase.from("shopping_lists").select("*").order("created_at", { ascending: false }).limit(20),
       supabase.from("category_margins").select("*"),
     ]);
     setProfile(pr.data); setProducts(ps.data || []); setLists(ls.data || []); setMargins(Object.fromEntries((ms.data || []).map(x => [x.category, x.margin])));
-    const listId = (ls.data || []).find(x => x.status === "aberta")?.id || ls.data?.[0]?.id;
+    const availableLists = ls.data || [];
+    const listId = availableLists.some(x => x.id === selectedListId) ? selectedListId : availableLists.find(x => x.status === "aberta")?.id || availableLists[0]?.id;
+    if (listId && listId !== selectedListId) setSelectedListId(listId);
     if (listId) { const it = await supabase.from("list_items").select("*, product:products(*)").eq("list_id", listId).order("created_at"); setItems(it.data || []); }
     else setItems([]);
     setLoading(false);
-  }, [session]);
+  }, [session, selectedListId]);
   useEffect(() => {
     if (!configured) return;
     supabase.auth.getSession().then(({ data }) => { setSession(data.session); setLoading(false); });
@@ -60,22 +63,28 @@ export default function App() {
   };
   const addToList = async (productId) => {
     if (!activeList) { flash("Crie uma lista antes de adicionar produtos."); return; }
+    if (activeList.status === "finalizada") { flash("Listas finalizadas ficam disponíveis somente para consulta."); return; }
     const { error } = await supabase.from("list_items").insert({ list_id: activeList.id, product_id: productId, status: "comprar", planned_quantity: 1 }); if (error) flash(error.message); else load();
   };
-  const createList = async () => { const title = prompt("Nome da nova lista:", `Compra ${new Date().toLocaleDateString("pt-BR")}`); if (!title) return; const { error } = await supabase.from("shopping_lists").insert({ title, created_by: session.user.id }); if (error) flash(error.message); else load(); };
+  const createList = async () => { const title = prompt("Nome da nova lista:", `Compra ${new Date().toLocaleDateString("pt-BR")}`); if (!title) return; const { data, error } = await supabase.from("shopping_lists").insert({ title, created_by: session.user.id }).select().single(); if (error) flash(error.message); else { setSelectedListId(data.id); setView("lista"); } };
   const filtered = useMemo(() => items.filter(i => (!search || i.product.name.toLowerCase().includes(search.toLowerCase())) && (!category || i.product.category === category)), [items, search, category]);
   const totals = Totals({ items, margins }), bought = items.filter(i => i.status === "comprado");
   if (!configured) return <MissingConfig />; if (!session) return <Login />; if (loading) return <main className="auth-page"><h2>Carregando Verdurão Ribeiro...</h2></main>;
   return <div className={dark ? "dark app-shell" : "app-shell"}>
     <header className="topbar"><div className="brand"><div className="brand-mark">VR</div><div><strong>VERDURÃO RIBEIRO</strong><span>Controle CEASA</span></div></div><div className="header-actions"><button className="icon-btn" onClick={() => setDark(!dark)}>{dark ? "☀" : "◐"}</button><button className="profile-btn" onClick={() => supabase.auth.signOut()}><span>{ROLES[profile?.role] || "Usuário"}</span><b>{(profile?.full_name || session.user.email)[0].toUpperCase()}</b></button></div></header>
-    <nav className="nav">{[["lista","☷","Lista"],["comprador","✓","Comprar"],["relatorios","▥","Relatórios"],["config","⚙","Ajustes"]].map(([id,ico,label]) => <button key={id} className={view === id ? "active" : ""} onClick={() => setView(id)}><span>{ico}</span>{label}</button>)}</nav>
+    <nav className="nav">{[["lista","☷","Lista"],["comprador","✓","Comprar"],["historico","◷","Listas"],["relatorios","▥","Relatórios"],["config","⚙","Ajustes"]].map(([id,ico,label]) => <button key={id} className={view === id ? "active" : ""} onClick={() => setView(id)}><span>{ico}</span>{label}</button>)}</nav>
     <main>
-      {view === "lista" && <><div className="page-head"><div><p className="eyebrow">Sincronizada em tempo real</p><h1>{activeList?.title || "Lista de compra"}</h1><p>Planejamento compartilhado da equipe.</p></div>{canPlan && <div className="head-actions"><button className="btn secondary" onClick={createList}>Nova lista</button><button className="btn primary" onClick={addProduct}>+ Cadastrar produto</button></div>}</div><div className="stats"><Stat label="Na lista" value={items.length} note={`${bought.length} comprados`} /><Stat label="Total gasto" value={money(totals.spent)} note="atualizado online" /><Stat label="Venda estimada" value={money(totals.sale)} note="preços sugeridos" /><Stat label="Lucro estimado" value={money(totals.profit)} note="lucro bruto" /></div><div className="toolbar"><label className="search"><span>⌕</span><input placeholder="Buscar produto..." value={search} onChange={e=>setSearch(e.target.value)} /></label><select value={category} onChange={e=>setCategory(e.target.value)}><option value="">Todas as categorias</option>{Object.entries(CATEGORIES).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><button className="btn ghost" onClick={() => window.print()}>Imprimir / PDF</button></div><div className="product-grid">{filtered.map(i=><ProductCard key={i.id} item={i} margins={margins} canPlan={canPlan} updateItem={updateItem} />)}</div>{canPlan && <section className="panel catalog-panel"><div className="panel-head"><h3>Adicionar produto à lista</h3></div><div className="compact-products">{products.filter(p=>!items.some(i=>i.product_id===p.id)).map(p=><div className="catalog-row" key={p.id}><span><b>{p.name}</b> · {CATEGORIES[p.category]}</span><button className="btn secondary" onClick={()=>addToList(p.id)}>Adicionar</button></div>)}</div></section>}</>}
-      {view === "comprador" && <Buyer items={items} margins={margins} canBuy={canBuy} updateItem={updateItem} totals={totals} activeList={activeList} userId={session.user.id} reload={load} flash={flash} />}
+      {view === "lista" && <><div className="page-head"><div><p className="eyebrow">{activeList?.status === "finalizada" ? "Lista finalizada · somente consulta" : "Sincronizada em tempo real"}</p><h1>{activeList?.title || "Lista de compra"}</h1><p>Planejamento compartilhado da equipe.</p></div>{canPlan && <div className="head-actions"><button className="btn secondary" onClick={createList}>Nova lista</button><button className="btn primary" onClick={addProduct}>+ Cadastrar produto</button></div>}</div><div className="stats"><Stat label="Na lista" value={items.length} note={`${bought.length} comprados`} /><Stat label="Total gasto" value={money(totals.spent)} note="atualizado online" /><Stat label="Venda estimada" value={money(totals.sale)} note="preços sugeridos" /><Stat label="Lucro estimado" value={money(totals.profit)} note="lucro bruto" /></div><div className="toolbar"><label className="search"><span>⌕</span><input placeholder="Buscar produto..." value={search} onChange={e=>setSearch(e.target.value)} /></label><select value={category} onChange={e=>setCategory(e.target.value)}><option value="">Todas as categorias</option>{Object.entries(CATEGORIES).map(([k,v])=><option key={k} value={k}>{v}</option>)}</select><button className="btn ghost" onClick={() => window.print()}>Imprimir / PDF</button></div><div className="product-grid">{filtered.map(i=><ProductCard key={i.id} item={i} margins={margins} canPlan={canEditPlan} updateItem={updateItem} />)}</div>{canEditPlan && <section className="panel catalog-panel"><div className="panel-head"><h3>Adicionar produto à lista</h3></div><div className="compact-products">{products.filter(p=>!items.some(i=>i.product_id===p.id)).map(p=><div className="catalog-row" key={p.id}><span><b>{p.name}</b> · {CATEGORIES[p.category]}</span><button className="btn secondary" onClick={()=>addToList(p.id)}>Adicionar</button></div>)}</div></section>}</>}
+      {view === "comprador" && <Buyer items={items} margins={margins} canBuy={canEditPurchase} updateItem={updateItem} totals={totals} activeList={activeList} userId={session.user.id} reload={load} flash={flash} />}
+      {view === "historico" && <History lists={lists} selectedListId={activeList?.id} selectList={(id) => { setSelectedListId(id); setView("lista"); }} createList={createList} canPlan={canPlan} />}
       {view === "relatorios" && <Reports items={items} margins={margins} totals={totals} />}
       {view === "config" && <Settings margins={margins} profile={profile} isAdmin={isAdmin} products={products} reload={load} flash={flash} />}
     </main>{notice && <div className="toast show">{notice}</div>}
   </div>;
+}
+
+function History({ lists, selectedListId, selectList, createList, canPlan }) {
+  return <><div className="page-head"><div><p className="eyebrow">Últimas 20 listas salvas</p><h1>Histórico de listas</h1><p>Abra compras anteriores sem apagar os dados.</p></div>{canPlan && <button className="btn primary" onClick={createList}>+ Nova lista</button>}</div><div className="history-cards">{lists.map(list=><article className={`history-card ${list.id===selectedListId?"selected":""}`} key={list.id}><div><span className={`chip ${list.status}`}>{list.status}</span><h3>{list.title}</h3><p>{new Date(list.purchase_date+"T12:00:00").toLocaleDateString("pt-BR")} · criada em {new Date(list.created_at).toLocaleDateString("pt-BR")}</p></div><button className="btn secondary" onClick={()=>selectList(list.id)}>{list.id===selectedListId?"Lista aberta":"Abrir lista"}</button></article>)}</div>{!lists.length && <div className="empty"><b>Nenhuma lista salva</b><span>Crie sua primeira lista de compras.</span></div>}</>;
 }
 
 function ProductCard({ item, margins, canPlan, updateItem }) {
