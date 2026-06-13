@@ -139,12 +139,15 @@ A saída de produção será criada em `dist`.
 supabase/migrations/001_add_manager_role.sql
 supabase/migrations/002_multi_store_finance.sql
 supabase/migrations/003_complete_financial_management.sql
+supabase/migrations/004_list_item_sort_order.sql
 ```
 
 5. Em **Authentication > Providers**, mantenha o login por e-mail habilitado.
 6. Em produção, desabilite o cadastro público e crie usuários autorizados manualmente.
 
 As migrações são incrementais e preservam os dados existentes.
+
+A migração `004_list_item_sort_order.sql` adiciona a ordem personalizada dos produtos em cada lista, permitindo remover itens somente da lista atual e reorganizá-los sem alterar o cadastro geral.
 
 ### Criar o primeiro administrador
 
@@ -259,4 +262,3 @@ Projeto em desenvolvimento ativo, utilizado para apoiar a operação do Verdurã
 ## Licença
 
 Este repositório não possui uma licença de código aberto definida. A disponibilização pública do código não concede automaticamente permissão para copiar, modificar, distribuir ou utilizar comercialmente o projeto.
-

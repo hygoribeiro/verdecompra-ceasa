@@ -268,6 +268,29 @@ Use o seletor de categoria para mostrar somente frutas, verduras, legumes, tempe
 
 Esse processo não exclui o produto do cadastro geral.
 
+## Como remover um produto somente da lista atual
+
+1. Localize o card do produto.
+2. Clique em **Remover**.
+3. Confirme a mensagem:
+
+   `Tem certeza que deseja remover este produto da lista?`
+
+4. O item sairá somente da lista aberta.
+5. O produto continuará disponível no cadastro geral e poderá ser adicionado novamente.
+6. A quantidade de itens e os totais serão atualizados automaticamente.
+
+## Como alterar a ordem dos produtos
+
+Existem quatro maneiras de organizar a lista:
+
+1. No computador, clique e arraste o card para a posição desejada.
+2. No celular, pressione o ícone de arrastar e mova o dedo até outro card.
+3. Clique em **Subir** ou **Descer**.
+4. Informe um número no campo **Mover para**.
+
+A ordem é salva automaticamente e pertence somente à lista e à loja atuais. Busca e filtros não alteram a posição salva.
+
 ---
 
 # 11. Tela do comprador no CEASA
@@ -824,6 +847,7 @@ As migrações devem ser executadas na ordem:
 2. `supabase/migrations/001_add_manager_role.sql`;
 3. `supabase/migrations/002_multi_store_finance.sql`;
 4. `supabase/migrations/003_complete_financial_management.sql`.
+5. `supabase/migrations/004_list_item_sort_order.sql`.
 
 ## Executar uma migração
 
@@ -1000,4 +1024,3 @@ Leia a primeira mensagem de erro apresentada.
 | Alterar margem | Ajustes > Margens por categoria |
 | Criar usuário | Supabase > Authentication > Users |
 | Alterar perfil | Supabase > SQL Editor |
-
