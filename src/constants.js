@@ -1,0 +1,14 @@
+export const CATEGORIES = { fruta: "Frutas", verdura: "Verduras", legume: "Legumes", tempero: "Temperos", outros: "Outros" };
+export const UNITS = ["kg", "caixa", "saco", "unidade", "duzia"];
+export const TYPES = { normal: "Produto normal", promocao: "Produto de promoção", lucro: "Produto de lucro", risco: "Risco de perda" };
+export const STATUS = { comprar: "Comprar", comprado: "Comprado", nao_comprar: "Não comprar" };
+export const ROLES = { administrador: "Administrador", comprador: "Comprador", funcionario: "Funcionário" };
+export const money = (n) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const num = (n) => Number(n || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
+export const margin = (item, margins) => Number(item.manual_margin ?? margins[item.product?.category] ?? 40) + (item.product?.type === "risco" && item.manual_margin == null ? 10 : 0);
+export const amount = (item) => Number(item.weight_kg || item.purchased_quantity || 0);
+export const cost = (item) => amount(item) ? Number(item.paid_total || 0) / amount(item) : 0;
+export const roundRetail = (v) => !v ? 0 : (v - Math.floor(v) <= 0.49 ? Math.floor(v) + 0.49 : Math.floor(v) + 0.99);
+export const price = (item, margins) => Number(item.final_sale_price || 0) || roundRetail(cost(item) * (1 + margin(item, margins) / 100));
+export const sale = (item, margins) => price(item, margins) * amount(item);
+export const profit = (item, margins) => sale(item, margins) - Number(item.paid_total || 0);
