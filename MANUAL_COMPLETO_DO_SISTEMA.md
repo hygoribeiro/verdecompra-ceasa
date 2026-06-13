@@ -328,6 +328,36 @@ Após finalizar, a lista fica disponível para consulta no histórico.
 
 ---
 
+## Como configurar a precificação de um produto
+
+1. Abra uma lista de compra que esteja aberta.
+2. Localize o produto.
+3. Clique em **Configurar preço** dentro do card.
+4. Escolha o tipo:
+
+   - **Por margem percentual**: mantém a regra percentual do sistema;
+   - **Por valor fixo adicionado**: soma o valor fixo ao valor pago e divide pelo peso.
+
+5. Confira ou informe o valor pago.
+6. Informe o peso total.
+7. Informe a margem percentual ou o valor fixo adicionado.
+8. Escolha o arredondamento:
+
+   - sem arredondar;
+   - final 0,99;
+   - final 0,49;
+   - final 0,90;
+   - automático comercial.
+
+9. Saia do campo alterado para salvar.
+10. Confira o preço sugerido exibido no painel e no card.
+
+Na precificação por valor fixo, a fórmula é:
+
+`Preço sugerido = (valor pago + valor fixo adicionado) ÷ peso total`
+
+Se o valor pago ou o peso necessário não estiver informado, o painel mostrará um alerta e não calculará o preço.
+
 # 12. Histórico das listas
 
 1. Abra **Listas**.
@@ -848,6 +878,7 @@ As migrações devem ser executadas na ordem:
 3. `supabase/migrations/002_multi_store_finance.sql`;
 4. `supabase/migrations/003_complete_financial_management.sql`.
 5. `supabase/migrations/004_list_item_sort_order.sql`.
+6. `supabase/migrations/005_product_pricing_modes.sql`.
 
 ## Executar uma migração
 

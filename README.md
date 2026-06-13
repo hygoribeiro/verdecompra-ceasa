@@ -140,6 +140,7 @@ supabase/migrations/001_add_manager_role.sql
 supabase/migrations/002_multi_store_finance.sql
 supabase/migrations/003_complete_financial_management.sql
 supabase/migrations/004_list_item_sort_order.sql
+supabase/migrations/005_product_pricing_modes.sql
 ```
 
 5. Em **Authentication > Providers**, mantenha o login por e-mail habilitado.
@@ -148,6 +149,8 @@ supabase/migrations/004_list_item_sort_order.sql
 As migrações são incrementais e preservam os dados existentes.
 
 A migração `004_list_item_sort_order.sql` adiciona a ordem personalizada dos produtos em cada lista, permitindo remover itens somente da lista atual e reorganizá-los sem alterar o cadastro geral.
+
+A migração `005_product_pricing_modes.sql` adiciona precificação por margem percentual ou valor fixo, com arredondamento configurável por item.
 
 ### Criar o primeiro administrador
 
