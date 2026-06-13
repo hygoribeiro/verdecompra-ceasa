@@ -247,6 +247,13 @@ Criar uma nova lista não apaga as listas anteriores. Elas permanecem disponíve
 
 Use o campo **Buscar produto** para localizar rapidamente um item.
 
+- A busca acontece automaticamente enquanto você digita.
+- Não é necessário pressionar Enter.
+- A busca encontra nome, categoria e unidade.
+- A busca ignora acentos e letras maiúsculas. Exemplo: `mamao` encontra `Mamão`.
+- Clique no botão **X** para limpar.
+- A mesma busca também filtra os produtos disponíveis na seção **Adicionar produto à lista**.
+
 ## Filtrar por categoria
 
 Use o seletor de categoria para mostrar somente frutas, verduras, legumes, temperos ou outros.
@@ -308,6 +315,15 @@ A ordem é salva automaticamente e pertence somente à lista e à loja atuais. B
 
 5. Clique em **Marcar comprado**.
 6. Repita para todos os produtos.
+
+## Busca rápida do comprador
+
+1. Digite no campo de busca para localizar por nome, categoria, unidade ou status.
+2. Use o filtro de categoria junto com a busca.
+3. Use o filtro de status para mostrar itens a comprar ou comprados.
+4. Clique no botão **X** para limpar a busca e mostrar todos os produtos novamente.
+
+A busca apenas filtra visualmente. Nenhum produto é removido da lista.
 
 O sistema calcula automaticamente:
 
