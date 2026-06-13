@@ -2,6 +2,14 @@
 
 O sistema inclui operação multi-loja, módulo financeiro, dashboards geral/individual, comprovantes e histórico de alterações.
 
+## Manual completo
+
+O passo a passo detalhado de operação, administração, financeiro, usuários, publicação e solução de problemas está em:
+
+```text
+MANUAL_COMPLETO_DO_SISTEMA.md
+```
+
 ## Atualizar uma instalação existente
 
 Execute no SQL Editor:
