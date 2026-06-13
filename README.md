@@ -155,3 +155,15 @@ vercel.json        Build e fallback SPA
 - Nunca exponha a Secret key ou a chave legada `service_role`.
 - Em produção, prefira criar usuários por convite e desabilitar signup público.
 - Revise periodicamente os usuários em `public.profiles` e remova acessos que não forem mais necessários.
+
+## Centro Financeiro completo
+
+Depois das migrações anteriores, execute no SQL Editor do Supabase:
+
+```text
+supabase/migrations/003_complete_financial_management.sql
+```
+
+Ela preserva despesas e compras existentes e adiciona entradas, fluxo de caixa automático, faturamento diário, abertura e fechamento de caixa, resultados, comprovantes, auditoria e permissões por loja.
+
+Consulte `GUIA_CENTRO_FINANCEIRO.md` para publicar, usar e testar.

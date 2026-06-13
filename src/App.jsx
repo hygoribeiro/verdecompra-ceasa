@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase, configured } from "./supabase";
 import Dashboard from "./Dashboard";
-import Finance from "./Finance";
+import FinanceCenter from "./FinanceCenter";
 import { CATEGORIES, TYPES, STATUS, ROLES, PERIODS, money, num, margin, cost, price, profit, totals, periodRange } from "./constants";
 
 function Login() {
@@ -13,7 +13,7 @@ function Brand(){return <div className="brand auth-brand"><img className="brand-
 function Stat({label,value,note}){return <div className="stat"><span>{label}</span><strong>{value}</strong><small>{note}</small></div>}
 
 export default function App(){
-  const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[stores,setStores]=useState([]),[selectedStoreId,setSelectedStoreId]=useState(""),[products,setProducts]=useState([]),[lists,setLists]=useState([]),[selectedListId,setSelectedListId]=useState(null),[items,setItems]=useState([]),[allItems,setAllItems]=useState([]),[expenses,setExpenses]=useState([]),[auditLog,setAuditLog]=useState([]),[financeCategories,setFinanceCategories]=useState([]),[margins,setMargins]=useState({}),[view,setView]=useState("dashboard"),[search,setSearch]=useState(""),[category,setCategory]=useState(""),[period,setPeriod]=useState("mes"),[customStart,setCustomStart]=useState(""),[customEnd,setCustomEnd]=useState(""),[loading,setLoading]=useState(true),[notice,setNotice]=useState(""),[dark,setDark]=useState(false);
+  const [session,setSession]=useState(null),[profile,setProfile]=useState(null),[stores,setStores]=useState([]),[selectedStoreId,setSelectedStoreId]=useState(""),[products,setProducts]=useState([]),[lists,setLists]=useState([]),[selectedListId,setSelectedListId]=useState(null),[items,setItems]=useState([]),[allItems,setAllItems]=useState([]),[expenses,setExpenses]=useState([]),[entries,setEntries]=useState([]),[entryCategories,setEntryCategories]=useState([]),[cashFlow,setCashFlow]=useState([]),[dailyRevenue,setDailyRevenue]=useState([]),[cashOpenings,setCashOpenings]=useState([]),[cashClosings,setCashClosings]=useState([]),[monthlyResults,setMonthlyResults]=useState([]),[auditLog,setAuditLog]=useState([]),[financeCategories,setFinanceCategories]=useState([]),[margins,setMargins]=useState({}),[view,setView]=useState("dashboard"),[search,setSearch]=useState(""),[category,setCategory]=useState(""),[period,setPeriod]=useState("mes"),[customStart,setCustomStart]=useState(""),[customEnd,setCustomEnd]=useState(""),[loading,setLoading]=useState(true),[notice,setNotice]=useState(""),[dark,setDark]=useState(false);
   const isAdmin=profile?.role==="administrador",isManager=profile?.role==="gerente",canPlan=["administrador","gerente","funcionario"].includes(profile?.role),canBuy=["administrador","gerente","comprador"].includes(profile?.role),canFinance=isAdmin||isManager;
   const range=periodRange(period,customStart,customEnd), operationalStoreId=selectedStoreId==="all"?"":selectedStoreId;
   const storeProducts=products.filter(p=>p.store_id===operationalStoreId),storeLists=lists.filter(l=>l.store_id===operationalStoreId),activeList=storeLists.find(l=>l.id===selectedListId)||storeLists.find(l=>l.status==="aberta")||storeLists[0];
@@ -21,7 +21,7 @@ export default function App(){
   const flash=t=>{setNotice(t);setTimeout(()=>setNotice(""),2600)};
   const load=useCallback(async()=>{
     if(!session)return;
-    const [pr,st,ps,ls,ms,fc,ex,ai,au]=await Promise.all([
+    const [pr,st,ps,ls,ms,fc,ex,ai,au,ec,en,cf,dr,co,cc,mr]=await Promise.all([
       supabase.from("profiles").select("*").eq("id",session.user.id).single(),
       supabase.from("stores").select("*").eq("active",true).order("name"),
       supabase.from("products").select("*").eq("active",true).order("name"),
@@ -30,9 +30,16 @@ export default function App(){
       supabase.from("financial_categories").select("*").eq("active",true).order("name"),
       supabase.from("expenses").select("*, store:stores(*), category:financial_categories(*)").order("expense_date",{ascending:false}),
       supabase.from("list_items").select("*, product:products(*), list:shopping_lists(*)"),
-      supabase.from("audit_log").select("*").order("changed_at",{ascending:false}).limit(20)
+      supabase.from("audit_log").select("*").order("changed_at",{ascending:false}).limit(20),
+      supabase.from("financial_entry_categories").select("*").eq("active",true).order("name"),
+      supabase.from("financial_entries").select("*, store:stores(*), category:financial_entry_categories(*)").order("entry_date",{ascending:false}),
+      supabase.from("cash_flow").select("*, store:stores(*)").order("movement_date",{ascending:false}),
+      supabase.from("daily_revenue").select("*, store:stores(*)").order("revenue_date",{ascending:false}),
+      supabase.from("cash_openings").select("*").order("opening_date",{ascending:false}),
+      supabase.from("cash_closings").select("*").order("closing_date",{ascending:false}),
+      supabase.from("monthly_results").select("*").order("result_month",{ascending:false})
     ]);
-    setProfile(pr.data);setStores(st.data||[]);setProducts(ps.data||[]);setLists(ls.data||[]);setMargins(Object.fromEntries((ms.data||[]).map(x=>[x.category,x.margin])));setFinanceCategories(fc.data||[]);setExpenses(ex.data||[]);setAllItems(ai.data||[]);setAuditLog(au.data||[]);
+    setProfile(pr.data);setStores(st.data||[]);setProducts(ps.data||[]);setLists(ls.data||[]);setMargins(Object.fromEntries((ms.data||[]).map(x=>[x.category,x.margin])));setFinanceCategories(fc.data||[]);setExpenses(ex.data||[]);setAllItems(ai.data||[]);setAuditLog(au.data||[]);setEntryCategories(ec.data||[]);setEntries(en.data||[]);setCashFlow(cf.data||[]);setDailyRevenue(dr.data||[]);setCashOpenings(co.data||[]);setCashClosings(cc.data||[]);setMonthlyResults(mr.data||[]);
     const initialStore=selectedStoreId||(pr.data?.role==="administrador"?"all":pr.data?.store_id||st.data?.[0]?.id);
     if(initialStore!==selectedStoreId)setSelectedStoreId(initialStore);
     setLoading(false);
@@ -41,10 +48,10 @@ export default function App(){
     if(!activeList){setItems([]);return}
     if(activeList.id!==selectedListId)setSelectedListId(activeList.id);
     const {data}=await supabase.from("list_items").select("*, product:products(*)").eq("list_id",activeList.id).order("created_at");setItems(data||[]);
-  },[activeList?.id,selectedListId]);
+  },[activeList,selectedListId]);
   useEffect(()=>{if(!configured)return;supabase.auth.getSession().then(({data})=>{setSession(data.session);setLoading(false)});const {data:{subscription}}=supabase.auth.onAuthStateChange((_e,s)=>setSession(s));return()=>subscription.unsubscribe()},[]);
   useEffect(()=>{load()},[load]);useEffect(()=>{loadListItems()},[loadListItems]);
-  useEffect(()=>{if(!session)return;const ch=supabase.channel("app-live").on("postgres_changes",{event:"*",schema:"public",table:"list_items"},load).on("postgres_changes",{event:"*",schema:"public",table:"shopping_lists"},load).on("postgres_changes",{event:"*",schema:"public",table:"expenses"},load).subscribe();return()=>supabase.removeChannel(ch)},[session,load]);
+  useEffect(()=>{if(!session)return;const ch=supabase.channel("app-live").on("postgres_changes",{event:"*",schema:"public",table:"list_items"},load).on("postgres_changes",{event:"*",schema:"public",table:"shopping_lists"},load).on("postgres_changes",{event:"*",schema:"public",table:"expenses"},load).on("postgres_changes",{event:"*",schema:"public",table:"financial_entries"},load).on("postgres_changes",{event:"*",schema:"public",table:"daily_revenue"},load).on("postgres_changes",{event:"*",schema:"public",table:"cash_openings"},load).on("postgres_changes",{event:"*",schema:"public",table:"cash_closings"},load).subscribe();return()=>supabase.removeChannel(ch)},[session,load]);
   const updateItem=async(id,patch)=>{const{error}=await supabase.from("list_items").update(patch).eq("id",id);if(error)flash(error.message);else{load();loadListItems()}};
   const createList=async()=>{if(!operationalStoreId)return flash("Selecione uma loja antes de criar a lista.");const title=prompt("Nome da nova lista:",`Compra ${new Date().toLocaleDateString("pt-BR")}`);if(!title)return;const{data,error}=await supabase.from("shopping_lists").insert({title,created_by:session.user.id,store_id:operationalStoreId}).select().single();if(error)flash(error.message);else{setSelectedListId(data.id);setView("lista");load()}};
   const addProduct=async()=>{if(!operationalStoreId)return flash("Selecione uma loja.");const name=prompt("Nome do produto:");if(!name)return;const cat=prompt("Categoria: fruta, verdura, legume, tempero ou outros","outros");const{error}=await supabase.from("products").insert({name,category:CATEGORIES[cat]?cat:"outros",purchase_unit:"kg",type:"normal",store_id:operationalStoreId});if(error)flash(error.message);else load()};
@@ -52,7 +59,7 @@ export default function App(){
   const filtered=useMemo(()=>items.filter(i=>(!search||i.product.name.toLowerCase().includes(search.toLowerCase()))&&(!category||i.product.category===category)),[items,search,category]);
   const t=totals(items,margins),bought=items.filter(i=>i.status==="comprado");
   if(!configured)return <main className="auth-page"><h2>Configure as variáveis do Supabase.</h2></main>;if(!session)return <Login/>;if(loading)return <main className="auth-page"><h2>Carregando Verdurão Ribeiro...</h2></main>;
-  const nav=[["dashboard","▦","Dashboard"],["lista","☷","Lista"],["comprador","✓","Comprar"],["historico","◷","Listas"],...(canFinance?[["financeiro","$","Financeiro"]]:[]),["relatorios","▥","Relatórios"],["config","⚙","Ajustes"]];
+  const nav=[["dashboard","▦","Dashboard"],["lista","☷","Lista"],["comprador","✓","Comprar"],["historico","◷","Listas"],...(canFinance?[["financeiro","$","Centro Financeiro"]]:[]),["relatorios","▥","Relatórios"],["config","⚙","Ajustes"]];
   return <div className={dark?"dark app-shell":"app-shell"}><header className="topbar"><Brand/><div className="header-actions"><select className="store-selector" value={selectedStoreId} onChange={e=>{setSelectedStoreId(e.target.value);setSelectedListId(null)}}>{isAdmin&&<option value="all">Todas as lojas</option>}{stores.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select><button className="icon-btn" onClick={()=>setDark(!dark)}>{dark?"☀":"◐"}</button><button className="profile-btn" onClick={()=>supabase.auth.signOut()}><span>{ROLES[profile?.role]}</span><b>{(profile?.full_name||session.user.email)[0].toUpperCase()}</b></button></div></header>
   <nav className="nav">{nav.map(([id,ico,label])=><button key={id} className={view===id?"active":""} onClick={()=>setView(id)}><span>{ico}</span>{label}</button>)}</nav>
   <main><PeriodFilters period={period} setPeriod={setPeriod} customStart={customStart} setCustomStart={setCustomStart} customEnd={customEnd} setCustomEnd={setCustomEnd}/>
@@ -60,7 +67,7 @@ export default function App(){
   {view==="lista"&&(operationalStoreId?<ListView activeList={activeList} items={items} filtered={filtered} products={storeProducts} margins={margins} totals={t} bought={bought} canPlan={canPlan} canEditPlan={canEditPlan} search={search} setSearch={setSearch} category={category} setCategory={setCategory} createList={createList} addProduct={addProduct} addToList={addToList} updateItem={updateItem}/>:<SelectStore/>)}
   {view==="comprador"&&(operationalStoreId?<Buyer items={items} margins={margins} canBuy={canEditPurchase} updateItem={updateItem} totals={t} activeList={activeList} userId={session.user.id} reload={load} flash={flash}/>:<SelectStore/>)}
   {view==="historico"&&(operationalStoreId?<History lists={storeLists.slice(0,20)} selectedListId={activeList?.id} selectList={id=>{setSelectedListId(id);setView("lista")}} createList={createList} canPlan={canPlan}/>:<SelectStore/>)}
-  {view==="financeiro"&&canFinance&&<Finance expenses={expenses} stores={stores} categories={financeCategories} selectedStoreId={selectedStoreId} profile={profile} range={range} reload={load} flash={flash}/>}
+  {view==="financeiro"&&canFinance&&<FinanceCenter expenses={expenses} entries={entries} entryCategories={entryCategories} cashFlow={cashFlow} dailyRevenue={dailyRevenue} cashOpenings={cashOpenings} cashClosings={cashClosings} monthlyResults={monthlyResults} items={allItems} stores={stores} categories={financeCategories} selectedStoreId={selectedStoreId} profile={profile} range={range} reload={load} flash={flash}/>}
   {view==="relatorios"&&<Reports items={allItems.filter(i=>(selectedStoreId==="all"||i.list?.store_id===selectedStoreId)&&i.list?.purchase_date>=range.start&&i.list?.purchase_date<=range.end)} margins={margins}/>}
   {view==="config"&&<Settings stores={stores} profile={profile} margins={margins} isAdmin={isAdmin} auditLog={auditLog} reload={load} flash={flash}/>}
   </main>{notice&&<div className="toast show">{notice}</div>}</div>

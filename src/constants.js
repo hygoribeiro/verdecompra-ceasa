@@ -5,7 +5,7 @@ export const STATUS = { comprar: "Comprar", comprado: "Comprado", nao_comprar: "
 export const ROLES = { administrador: "Administrador", gerente: "Gerente da loja", comprador: "Comprador", funcionario: "Funcionário" };
 export const PAYMENT_METHODS = ["Pix", "Dinheiro", "Cartão", "Boleto", "Transferência", "Débito automático", "Outro"];
 export const EXPENSE_STATUS = { pago: "Pago", pendente: "Pendente", vencido: "Vencido" };
-export const PERIODS = { hoje: "Hoje", ontem: "Ontem", semana: "Esta semana", mes: "Este mês", anterior: "Mês anterior", personalizado: "Personalizado" };
+export const PERIODS = { hoje: "Hoje", ontem: "Ontem", semana: "Esta semana", mes: "Este mês", ano: "Este ano", anterior: "Mês anterior", personalizado: "Personalizado" };
 
 export const money = (n) => Number(n || 0).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export const num = (n) => Number(n || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
@@ -24,6 +24,7 @@ export function periodRange(period, customStart = "", customEnd = "") {
   if (period === "ontem") { start.setDate(start.getDate() - 1); end = new Date(start); }
   if (period === "semana") { start.setDate(start.getDate() - ((start.getDay() + 6) % 7)); }
   if (period === "mes") start = new Date(now.getFullYear(), now.getMonth(), 1, 12);
+  if (period === "ano") start = new Date(now.getFullYear(), 0, 1, 12);
   if (period === "anterior") { start = new Date(now.getFullYear(), now.getMonth() - 1, 1, 12); end = new Date(now.getFullYear(), now.getMonth(), 0, 12); }
   if (period === "personalizado" && customStart && customEnd) return { start: customStart, end: customEnd };
   return { start: iso(start), end: iso(end) };
