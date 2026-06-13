@@ -14,7 +14,9 @@ export const num = (n) => Number(n || 0).toLocaleString("pt-BR", { maximumFracti
 export const iso = (d) => new Date(d).toISOString().slice(0, 10);
 export const margin = (item, margins) => Number(item.margin_percentage ?? item.manual_margin ?? margins[item.product?.category] ?? 40) + (item.product?.type === "risco" && item.margin_percentage == null && item.manual_margin == null ? 10 : 0);
 export const amount = (item) => Number(item.weight_kg || item.purchased_quantity || 0);
-export const cost = (item) => amount(item) ? Number(item.paid_total || 0) / amount(item) : 0;
+export const purchaseSubtotal = item => Number(item.purchased_quantity || 0) * Number(item.paid_total || 0);
+export const productTotal = item => item.status === "comprado" ? purchaseSubtotal(item) : 0;
+export const cost = (item) => amount(item) ? purchaseSubtotal(item) / amount(item) : 0;
 export const roundRetail = (v) => !v ? 0 : (v - Math.floor(v) <= 0.49 ? Math.floor(v) + 0.49 : Math.floor(v) + 0.99);
 export const applyRounding = (value, type = "automatic") => {
   const v = Number(value || 0); if (!v || type === "none") return v;
@@ -26,16 +28,17 @@ export const applyRounding = (value, type = "automatic") => {
 };
 export const pricingWarning = item => {
   if (!Number(item.paid_total || 0)) return "Informe o valor pago para calcular o preço sugerido.";
+  if (!Number(item.purchased_quantity || 0)) return "Informe a quantidade comprada para calcular o preço sugerido.";
   if (item.pricing_type === "fixed" && !Number(item.weight_kg || 0)) return "Informe o peso total para calcular o preço sugerido.";
   if (item.pricing_type !== "fixed" && !amount(item)) return "Informe o peso total ou quantidade para calcular o preço sugerido.";
   return "";
 };
 export const rawPrice = (item, margins) => item.pricing_type === "fixed"
-  ? (Number(item.paid_total || 0) + Number(item.fixed_markup_value || 0)) / Number(item.weight_kg || 0)
+  ? (purchaseSubtotal(item) + Number(item.fixed_markup_value || 0)) / Number(item.weight_kg || 0)
   : cost(item) * (1 + margin(item, margins) / 100);
 export const price = (item, margins) => pricingWarning(item) ? 0 : Number(item.final_sale_price || 0) || applyRounding(rawPrice(item, margins), item.rounding_type || "automatic");
 export const sale = (item, margins) => price(item, margins) * amount(item);
-export const profit = (item, margins) => sale(item, margins) - Number(item.paid_total || 0);
+export const profit = (item, margins) => sale(item, margins) - productTotal(item);
 
 export function periodRange(period, customStart = "", customEnd = "") {
   const now = new Date(); now.setHours(12, 0, 0, 0);
@@ -50,5 +53,5 @@ export function periodRange(period, customStart = "", customEnd = "") {
 }
 
 export function totals(items, margins) {
-  return items.reduce((a, i) => ({ spent: a.spent + Number(i.paid_total || 0), sale: a.sale + sale(i, margins), gross: a.gross + profit(i, margins) }), { spent: 0, sale: 0, gross: 0 });
+  return items.reduce((a, i) => ({ spent: a.spent + productTotal(i), sale: a.sale + sale(i, margins), gross: a.gross + profit(i, margins) }), { spent: 0, sale: 0, gross: 0 });
 }
