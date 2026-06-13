@@ -1,177 +1,262 @@
-# Verdurão Ribeiro - Controle CEASA
+# Verdurão Ribeiro
 
-O sistema inclui operação multi-loja, módulo financeiro, dashboards geral/individual, comprovantes e histórico de alterações.
+### Plataforma web para controle de compras no CEASA e gestão financeira multi-loja
 
-## Manual completo
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vite.dev/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3FCF8E?logo=supabase&logoColor=white)](https://supabase.com/)
+[![Vercel](https://img.shields.io/badge/Deploy-Vercel-000000?logo=vercel&logoColor=white)](https://vercel.com/)
 
-O passo a passo detalhado de operação, administração, financeiro, usuários, publicação e solução de problemas está em:
+O **Verdurão Ribeiro** é uma aplicação responsiva desenvolvida para organizar compras no CEASA, calcular custos e preços sugeridos, acompanhar resultados financeiros e administrar múltiplas lojas em uma única plataforma.
+
+O projeto utiliza autenticação, sincronização em tempo real, permissões por perfil e segurança em nível de linha no banco de dados.
+
+## Funcionalidades
+
+### Compras CEASA
+
+- Criação e planejamento de listas de compras.
+- Catálogo separado por loja.
+- Busca rápida e filtros por categoria.
+- Tela otimizada para o comprador usar no celular.
+- Registro de quantidade, peso, valor pago, qualidade e observações.
+- Cálculo automático de custo, preço sugerido, lucro e margem.
+- Histórico das últimas listas.
+- Atualização em tempo real entre loja e comprador.
+
+### Gestão financeira
+
+- Cadastro de entradas e despesas.
+- Upload privado de comprovantes.
+- Fluxo de caixa automático.
+- Faturamento diário por forma de recebimento.
+- Abertura e fechamento de caixa.
+- Alerta visual para divergências.
+- Resultado financeiro e lucro líquido.
+- Alertas para contas vencidas, caixa negativo e margem baixa.
+- Exportação para Excel, impressão e PDF.
+
+### Multi-loja
+
+- Dados separados por loja.
+- Visão consolidada para administradores.
+- Comparação entre lojas.
+- Relatórios e indicadores por período.
+- Lojas iniciais: Santa Rita e Taquari.
+
+### Perfis de acesso
+
+| Perfil | Acesso |
+|---|---|
+| Administrador | Todas as lojas, dashboards, financeiro, configurações e auditoria |
+| Gerente | Operação e financeiro somente das lojas autorizadas |
+| Funcionário | Cadastro de produtos e planejamento das listas |
+| Comprador | Preenchimento e finalização das compras no CEASA |
+
+As permissões são aplicadas no banco com **Row Level Security**, não apenas escondidas na interface.
+
+## Tecnologias
+
+- React 19
+- Vite 6
+- Supabase Auth
+- PostgreSQL
+- Supabase Realtime
+- Supabase Storage
+- Row Level Security
+- Vercel
+- CSS responsivo
+
+## Arquitetura
 
 ```text
-MANUAL_COMPLETO_DO_SISTEMA.md
+ceasa-app/
+├── public/                         Arquivos públicos e identidade visual
+├── src/
+│   ├── App.jsx                     Navegação, autenticação e compras CEASA
+│   ├── Dashboard.jsx               Indicadores e comparativos
+│   ├── Finance.jsx                 Controle de despesas
+│   ├── FinanceCenter.jsx           Centro financeiro completo
+│   ├── constants.js                Cálculos e regras
+│   ├── main.jsx                    Inicialização React
+│   └── supabase.js                 Cliente Supabase
+├── supabase/
+│   ├── schema.sql                  Estrutura inicial do banco
+│   └── migrations/                 Migrações incrementais e seguras
+├── styles.css                      Estilos responsivos e modo escuro
+├── vercel.json                     Build e fallback SPA
+└── .env.example                    Modelo das variáveis de ambiente
 ```
 
-## Atualizar uma instalação existente
+## Executar localmente
 
-Execute no SQL Editor:
+### Requisitos
 
-```text
-supabase/migrations/002_multi_store_finance.sql
-```
+- Node.js 20 ou superior.
+- Um projeto no Supabase.
 
-A migração preserva os dados atuais. Consulte `GUIA_FINANCEIRO_E_LOJAS.md`.
-
-Aplicativo React/Vite para controle colaborativo de compras no CEASA, com autenticação, banco PostgreSQL, permissões por perfil e sincronização em tempo real via Supabase.
-
-## Stack e build
-
-- React 19 + Vite
-- Supabase Auth, PostgreSQL, RLS e Realtime
-- Deploy preparado para Vercel
-- Build: `npm run build`
-- Saída de produção: `dist`
-- SPA fallback: configurado em `vercel.json`
-
-## Rodar localmente
-
-Requisitos: Node.js 20 ou superior.
+### Instalação
 
 ```bash
+git clone https://github.com/SEU-USUARIO/SEU-REPOSITORIO.git
+cd SEU-REPOSITORIO
 npm install
-cp .env.example .env.local
-npm run dev
 ```
 
-Preencha `.env.local` antes de iniciar:
+Crie um arquivo `.env.local` baseado em `.env.example`:
 
 ```env
 VITE_SUPABASE_URL=https://SEU-PROJETO.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_SUBSTITUA_AQUI
 ```
 
-Para validar a versão de produção:
+Inicie o ambiente local:
+
+```bash
+npm run dev
+```
+
+Valide a versão de produção:
 
 ```bash
 npm run build
+npm run lint
 npm run preview
 ```
 
-## 1. Criar e configurar o projeto no Supabase
+A saída de produção será criada em `dist`.
 
-1. Acesse [database.new](https://database.new) e crie um projeto.
-2. No painel do projeto, abra **SQL Editor**.
-3. Copie todo o conteúdo de `supabase/schema.sql`, cole no editor e execute uma vez.
-4. Em **Authentication > Providers > Email**, mantenha Email habilitado.
-5. Para produção, desative cadastros públicos ou use somente convites em **Authentication**, evitando que pessoas não autorizadas criem contas.
-6. Crie o primeiro usuário em **Authentication > Users > Add user**.
-7. Depois que esse usuário existir, execute no SQL Editor:
+## Configurar o Supabase
+
+### Instalação nova
+
+1. Crie um projeto no [Supabase](https://database.new/).
+2. Abra **SQL Editor**.
+3. Execute `supabase/schema.sql`.
+4. Execute as migrações, na ordem:
+
+```text
+supabase/migrations/001_add_manager_role.sql
+supabase/migrations/002_multi_store_finance.sql
+supabase/migrations/003_complete_financial_management.sql
+```
+
+5. Em **Authentication > Providers**, mantenha o login por e-mail habilitado.
+6. Em produção, desabilite o cadastro público e crie usuários autorizados manualmente.
+
+As migrações são incrementais e preservam os dados existentes.
+
+### Criar o primeiro administrador
+
+Crie o usuário em **Authentication > Users** e execute:
 
 ```sql
 update public.profiles
 set role = 'administrador'
-where id = (select id from auth.users where email = 'SEU_EMAIL@EXEMPLO.COM');
+where id = (
+  select id
+  from auth.users
+  where email = 'administrador@exemplo.com'
+);
 ```
 
-8. Crie os demais usuários e altere seus perfis quando necessário:
+Utilize e-mails em letras minúsculas.
 
-```sql
-update public.profiles
-set role = 'comprador'
-where id = (select id from auth.users where email = 'comprador@exemplo.com');
+## Variáveis de ambiente
 
-update public.profiles
-set role = 'funcionario'
-where id = (select id from auth.users where email = 'funcionario@exemplo.com');
-```
-
-O arquivo SQL cria tabelas, índices, 20 produtos de exemplo, margens, triggers, políticas RLS e publicação Realtime.
-
-### Permissões
-
-| Perfil | Permissões |
+| Variável | Descrição |
 |---|---|
-| Administrador | Acesso completo, margens, usuários e exclusões |
-| Funcionário | Cadastra produtos, cria listas e altera planejamento |
-| Comprador | Preenche quantidade, peso, valor, qualidade e status comprado |
+| `VITE_SUPABASE_URL` | URL pública do projeto Supabase |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Chave publicável usada pelo frontend |
 
-Todos precisam estar autenticados. As regras são aplicadas no banco com RLS e triggers, não apenas escondidas na interface.
+> Nunca coloque a chave `service_role`, Secret key, senhas ou credenciais privadas em variáveis `VITE_*`.
 
-## 2. Configurar variáveis de ambiente
+## Deploy na Vercel
 
-No Supabase, abra o botão **Connect** do projeto e copie:
-
-- Project URL para `VITE_SUPABASE_URL`
-- Publishable key para `VITE_SUPABASE_PUBLISHABLE_KEY`
-
-Use somente a chave publicável no frontend. Nunca coloque uma Secret key ou `service_role` em variáveis `VITE_*`.
-
-Para desenvolvimento, crie `.env.local` a partir de `.env.example`. Esse arquivo é ignorado pelo Git.
-
-## 3. Subir na Vercel
-
-1. Envie esta pasta para um repositório GitHub, GitLab ou Bitbucket.
-2. Acesse [vercel.com/new](https://vercel.com/new) e importe o repositório.
-3. Confirme as configurações:
-   - Framework Preset: **Vite**
-   - Build Command: `npm run build`
-   - Output Directory: `dist`
-4. Em **Environment Variables**, adicione:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_PUBLISHABLE_KEY`
-5. Marque Production, Preview e Development conforme necessário.
-6. Clique em **Deploy**.
-
-O `vercel.json` já contém o rewrite necessário para que rotas SPA não retornem erro 404.
-
-## 4. Configurar URLs de autenticação
-
-No Supabase, abra **Authentication > URL Configuration**:
-
-1. Defina **Site URL** como a URL final da Vercel, por exemplo `https://verdecompra.vercel.app`.
-2. Adicione em **Redirect URLs**:
-   - `http://localhost:5173/**`
-   - `https://SEU-DOMINIO.vercel.app/**`
-   - Seu domínio próprio, caso exista.
-
-## 5. Testar o app online
-
-1. Abra a URL publicada em uma janela anônima e confirme que o app exige login.
-2. Entre como funcionário, crie uma lista e adicione um produto.
-3. Em outro navegador ou celular, entre como comprador.
-4. Altere peso e valor no perfil comprador e confirme que a lista atualiza no primeiro navegador sem recarregar.
-5. Tente cadastrar um produto como comprador; a interface deve bloquear.
-6. Tente alterar valores da compra como funcionário; o banco deve rejeitar.
-7. Atualize uma URL interna diretamente e confirme que a Vercel não retorna 404.
-8. Execute localmente `npm run build` antes de cada publicação importante.
-
-## Estrutura
+1. Importe o repositório na [Vercel](https://vercel.com/new).
+2. Selecione o preset **Vite**.
+3. Confirme:
 
 ```text
-src/
-  App.jsx          Interface e fluxos
-  constants.js     Cálculos e regras
-  main.jsx         Entrada React
-  supabase.js      Cliente Supabase
-supabase/
-  schema.sql       Banco, RLS, triggers, realtime e dados iniciais
-vercel.json        Build e fallback SPA
-.env.example       Variáveis necessárias
+Build Command: npm run build
+Output Directory: dist
 ```
 
-## Segurança importante
-
-- A chave publicável pode ficar no navegador porque o acesso é protegido por RLS.
-- Nunca exponha a Secret key ou a chave legada `service_role`.
-- Em produção, prefira criar usuários por convite e desabilitar signup público.
-- Revise periodicamente os usuários em `public.profiles` e remova acessos que não forem mais necessários.
-
-## Centro Financeiro completo
-
-Depois das migrações anteriores, execute no SQL Editor do Supabase:
+4. Cadastre as variáveis:
 
 ```text
-supabase/migrations/003_complete_financial_management.sql
+VITE_SUPABASE_URL
+VITE_SUPABASE_PUBLISHABLE_KEY
 ```
 
-Ela preserva despesas e compras existentes e adiciona entradas, fluxo de caixa automático, faturamento diário, abertura e fechamento de caixa, resultados, comprovantes, auditoria e permissões por loja.
+5. Clique em **Deploy**.
 
-Consulte `GUIA_CENTRO_FINANCEIRO.md` para publicar, usar e testar.
+O arquivo `vercel.json` configura o fallback necessário para evitar erros 404 em rotas SPA.
+
+### URLs de autenticação
+
+Em **Supabase > Authentication > URL Configuration**:
+
+- configure **Site URL** com a URL de produção;
+- adicione `http://localhost:5173/**` para desenvolvimento;
+- adicione `https://SEU-DOMINIO.vercel.app/**` para produção.
+
+## Segurança
+
+Este projeto utiliza:
+
+- autenticação por e-mail e senha;
+- Row Level Security;
+- permissões por perfil e loja;
+- buckets privados para comprovantes;
+- histórico de alterações;
+- `.gitignore` configurado para não publicar arquivos sensíveis.
+
+Antes de tornar o repositório público, confirme que os seguintes itens não estão versionados:
+
+```text
+.env
+.env.local
+.vercel/
+node_modules/
+dist/
+```
+
+Também pesquise o histórico do repositório para confirmar que nenhuma chave secreta foi enviada anteriormente. Se alguma chave privada já tiver sido publicada, substitua-a no Supabase antes de tornar o repositório público.
+
+## Documentação
+
+- [Manual completo do sistema](./MANUAL_COMPLETO_DO_SISTEMA.md)
+- [Guia do Centro Financeiro](./GUIA_CENTRO_FINANCEIRO.md)
+- [Guia de lojas, financeiro e permissões](./GUIA_FINANCEIRO_E_LOJAS.md)
+
+## Scripts
+
+| Comando | Ação |
+|---|---|
+| `npm run dev` | Inicia o servidor de desenvolvimento |
+| `npm run build` | Gera a versão de produção |
+| `npm run lint` | Valida a qualidade do código |
+| `npm run preview` | Visualiza localmente o build de produção |
+
+## Testes recomendados
+
+Antes de uma publicação:
+
+1. Execute `npm run build` e `npm run lint`.
+2. Teste o login de cada perfil.
+3. Crie e finalize uma lista CEASA.
+4. Teste a sincronização em dois dispositivos.
+5. Cadastre uma entrada e uma despesa.
+6. Confira o fluxo de caixa e o resultado.
+7. Confirme que gerentes acessam somente suas lojas.
+8. Confirme que funcionários e compradores não acessam o financeiro.
+
+## Status
+
+Projeto em desenvolvimento ativo, utilizado para apoiar a operação do Verdurão Ribeiro.
+
+## Licença
+
+Este repositório não possui uma licença de código aberto definida. A disponibilização pública do código não concede automaticamente permissão para copiar, modificar, distribuir ou utilizar comercialmente o projeto.
+
