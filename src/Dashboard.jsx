@@ -2,11 +2,11 @@ import { CATEGORIES, money, num, totals, margin, profit, productTotal } from "./
 
 export default function Dashboard({ stores, items, expenses, margins, selectedStoreId, range, showFinance }) {
   const storeIds = selectedStoreId === "all" ? stores.map(s=>s.id) : [selectedStoreId];
-  const scopedItems = items.filter(i=>storeIds.includes(i.list?.store_id) && i.list?.purchase_date>=range.start && i.list?.purchase_date<=range.end && i.status==="comprado");
+  const scopedItems = items.filter(i=>storeIds.includes(i.list?.store_id) && i.list?.purchase_date>=range.start && i.list?.purchase_date<=range.end && i.status!=="nao_comprar");
   const scopedExpenses = expenses.filter(e=>storeIds.includes(e.store_id) && e.expense_date>=range.start && e.expense_date<=range.end);
   const days=Math.max(1,Math.round((new Date(range.end)-new Date(range.start))/86400000)+1),prevEnd=new Date(range.start+"T12:00"),prevStart=new Date(range.start+"T12:00");prevEnd.setDate(prevEnd.getDate()-1);prevStart.setDate(prevStart.getDate()-days);
   const previousExpenses=expenses.filter(e=>storeIds.includes(e.store_id)&&e.expense_date>=prevStart.toISOString().slice(0,10)&&e.expense_date<=prevEnd.toISOString().slice(0,10));
-  const previousItems=items.filter(i=>storeIds.includes(i.list?.store_id)&&i.list?.purchase_date>=prevStart.toISOString().slice(0,10)&&i.list?.purchase_date<=prevEnd.toISOString().slice(0,10)&&i.status==="comprado");
+  const previousItems=items.filter(i=>storeIds.includes(i.list?.store_id)&&i.list?.purchase_date>=prevStart.toISOString().slice(0,10)&&i.list?.purchase_date<=prevEnd.toISOString().slice(0,10)&&i.status!=="nao_comprar");
   const t=totals(scopedItems,margins), expenseTotal=scopedExpenses.reduce((a,e)=>a+Number(e.amount),0), net=t.sale-t.spent-expenseTotal, netMargin=t.sale?net/t.sale*100:0;
   const pt=totals(previousItems,margins),previousExpenseTotal=previousExpenses.reduce((a,e)=>a+Number(e.amount),0),previousNet=pt.sale-pt.spent-previousExpenseTotal,netChange=previousNet?(net-previousNet)/Math.abs(previousNet)*100:0;
   const storeData=stores.filter(s=>storeIds.includes(s.id)).map(s=>{const si=scopedItems.filter(i=>i.list?.store_id===s.id), se=scopedExpenses.filter(e=>e.store_id===s.id), st=totals(si,margins), ex=se.reduce((a,e)=>a+Number(e.amount),0);return{name:s.name,spent:st.spent,sale:st.sale,gross:st.gross,expenses:ex,net:st.sale-st.spent-ex,margin:st.sale?(st.sale-st.spent-ex)/st.sale*100:0}});

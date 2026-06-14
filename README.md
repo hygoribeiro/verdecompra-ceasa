@@ -141,6 +141,9 @@ supabase/migrations/002_multi_store_finance.sql
 supabase/migrations/003_complete_financial_management.sql
 supabase/migrations/004_list_item_sort_order.sql
 supabase/migrations/005_product_pricing_modes.sql
+supabase/migrations/006_store_list_templates.sql
+supabase/migrations/007_copy_taquari_template_to_santa_rita.sql
+supabase/migrations/008_product_calculation_type.sql
 ```
 
 5. Em **Authentication > Providers**, mantenha o login por e-mail habilitado.
@@ -151,6 +154,12 @@ As migrações são incrementais e preservam os dados existentes.
 A migração `004_list_item_sort_order.sql` adiciona a ordem personalizada dos produtos em cada lista, permitindo remover itens somente da lista atual e reorganizá-los sem alterar o cadastro geral.
 
 A migração `005_product_pricing_modes.sql` adiciona precificação por margem percentual ou valor fixo, com arredondamento configurável por item.
+
+A migração `006_store_list_templates.sql` permite escolher uma lista base diferente para cada loja. Ao criar uma nova lista, os produtos planejados, a ordem e as configurações de preço são copiados, enquanto os dados da compra permanecem zerados.
+
+A migração `007_copy_taquari_template_to_santa_rita.sql` copia a lista base de Taquari para Santa Rita, cria os produtos equivalentes que estiverem faltando e define a cópia como lista base de Santa Rita.
+
+A migração `008_product_calculation_type.sql` separa produtos calculados por KG e UNIDADE, preservando os dados existentes e classificando automaticamente produtos antigos.
 
 ### Criar o primeiro administrador
 

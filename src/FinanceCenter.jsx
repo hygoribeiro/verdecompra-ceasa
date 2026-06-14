@@ -19,7 +19,7 @@ export default function FinanceCenter(p){
   const revenues=p.dailyRevenue.filter(x=>visible(x)&&inRange(x,"revenue_date"));
   const flow=p.cashFlow.filter(x=>visible(x)&&inRange(x,"movement_date"));
   const totalEntries=sum(entries),totalExpenses=sum(expenses),totalRevenue=sum(revenues,"total_amount");
-  const ceasa=p.items.filter(i=>i.status==="comprado"&&visible({store_id:i.list?.store_id})&&i.list?.purchase_date>=p.range.start&&i.list?.purchase_date<=p.range.end).reduce((a,i)=>a+productTotal(i),0);
+  const ceasa=p.items.filter(i=>i.status!=="nao_comprar"&&visible({store_id:i.list?.store_id})&&i.list?.purchase_date>=p.range.start&&i.list?.purchase_date<=p.range.end).reduce((a,i)=>a+productTotal(i),0);
   const sales=totalRevenue||totalEntries, gross=sales-ceasa,net=gross-totalExpenses, balance=flow.reduce((a,x)=>a+(x.movement_type==="entrada"?Number(x.amount):-Number(x.amount)),0);
   const alerts=makeAlerts(expenses,revenues,balance,sales,net);
   const tabs=[["centro","Centro Financeiro"],["entradas","Entradas"],["despesas","Despesas"],["fluxo","Fluxo de Caixa"],["faturamento","Faturamento Diário"],["caixa","Caixa Diário"],["resultado","Resultado do Mês"]];
