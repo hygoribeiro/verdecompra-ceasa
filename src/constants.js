@@ -19,6 +19,9 @@ export const calculationUnit = item => calculationType(item) === "unidade" ? "un
 export const amount = (item) => calculationType(item) === "unidade" ? Number(item.purchased_quantity || 0) : Number(item.weight_kg || 0);
 export const purchaseSubtotal = item => Number(item.purchased_quantity || 0) * Number(item.paid_total || 0);
 export const productTotal = item => item.status === "nao_comprar" ? 0 : purchaseSubtotal(item);
+export const pricingTotal = item => item.pricing_type === "fixed"
+  ? Number(item.paid_total || 0) + Number(item.fixed_markup_value || 0)
+  : productTotal(item);
 export const cost = (item) => amount(item) ? purchaseSubtotal(item) / amount(item) : 0;
 export const roundRetail = (v) => !v ? 0 : (v - Math.floor(v) <= 0.49 ? Math.floor(v) + 0.49 : Math.floor(v) + 0.99);
 export const applyRounding = (value, type = "automatic") => {
@@ -37,10 +40,14 @@ export const pricingWarning = item => {
 };
 export const rawPrice = (item, margins) => item.pricing_type === "fixed"
   ? calculationType(item) === "unidade"
-    ? cost(item) + Number(item.fixed_markup_value || 0)
-    : (purchaseSubtotal(item) + Number(item.fixed_markup_value || 0)) / amount(item)
+    ? pricingTotal(item)
+    : pricingTotal(item) / amount(item)
   : cost(item) * (1 + margin(item, margins) / 100);
-export const price = (item, margins) => pricingWarning(item) ? 0 : Number(item.final_sale_price || 0) || applyRounding(rawPrice(item, margins), item.rounding_type || "automatic");
+export const price = (item, margins) => {
+  if (pricingWarning(item)) return 0;
+  const calculated = applyRounding(rawPrice(item, margins), item.rounding_type || "automatic");
+  return item.pricing_type === "fixed" ? calculated : Number(item.final_sale_price || 0) || calculated;
+};
 export const sale = (item, margins) => price(item, margins) * amount(item);
 export const profit = (item, margins) => sale(item, margins) - productTotal(item);
 

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculationUnit, cost, price, productTotal, rawPrice, sale, totals } from "./constants.js";
+import { calculationUnit, cost, price, pricingTotal, productTotal, rawPrice, sale, totals } from "./constants.js";
 
 const bought = (quantity, unitPrice, extra = {}) => ({
   status: "comprado",
@@ -58,6 +58,24 @@ test("valor fixo em produto por UNIDADE é acrescentado ao custo de cada unidade
   assert.equal(cost(item),2.5);
   assert.equal(rawPrice(item,{}),12.5);
   assert.equal(price(item,{}),12.5);
+});
+
+test("preço fixo por KG usa somente preço do produto mais valor fixo dividido pelo peso", () => {
+  const create=(paid,fixed,weight,marginPercentage=999)=>bought(1,paid,{weight_kg:weight,pricing_type:"fixed",fixed_markup_value:fixed,margin_percentage:marginPercentage,rounding_type:"none",product:{category:"outros",type:"risco",purchase_unit:"caixa",calculation_type:"kg"}});
+  assert.equal(rawPrice(create(60,50,20),{}),5.5);
+  assert.equal(rawPrice(create(60,40,20),{}),5);
+  assert.equal(rawPrice(create(100,20,30),{}),4);
+  assert.equal(pricingTotal(create(60,50,20)),110);
+});
+
+test("preço fixo ignora margem percentual e preço final antigo", () => {
+  const item=bought(1,60,{weight_kg:20,pricing_type:"fixed",fixed_markup_value:50,margin_percentage:999,final_sale_price:8.99,rounding_type:"none",product:{category:"outros",type:"risco",purchase_unit:"caixa",calculation_type:"kg"}});
+  assert.equal(price(item,{}),5.5);
+});
+
+test("preço fixo não calcula quando peso total é zero", () => {
+  const item=bought(1,60,{weight_kg:0,pricing_type:"fixed",fixed_markup_value:50,rounding_type:"none",product:{category:"outros",type:"normal",purchase_unit:"caixa",calculation_type:"kg"}});
+  assert.equal(price(item,{}),0);
 });
 
 test("total CEASA soma produto KG e UNIDADE", () => {
