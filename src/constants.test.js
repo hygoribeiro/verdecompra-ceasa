@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculationUnit, cost, productTotal, rawPrice, sale, totals } from "./constants.js";
+import { calculationUnit, cost, price, productTotal, rawPrice, sale, totals } from "./constants.js";
 
 const bought = (quantity, unitPrice, extra = {}) => ({
   status: "comprado",
@@ -51,6 +51,13 @@ test("produto por UNIDADE calcula total e custo por unidade sem usar peso", () =
   assert.equal(rawPrice(item,{}),4.5);
   assert.equal(sale(item,{}),225);
   assert.equal(calculationUnit(item),"un");
+});
+
+test("valor fixo em produto por UNIDADE é acrescentado ao custo de cada unidade", () => {
+  const item=bought(400,2.5,{pricing_type:"fixed",fixed_markup_value:10,rounding_type:"none",product:{category:"outros",type:"normal",purchase_unit:"unidade",calculation_type:"unidade"}});
+  assert.equal(cost(item),2.5);
+  assert.equal(rawPrice(item,{}),12.5);
+  assert.equal(price(item,{}),12.5);
 });
 
 test("total CEASA soma produto KG e UNIDADE", () => {

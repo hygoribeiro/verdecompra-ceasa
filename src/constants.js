@@ -36,7 +36,9 @@ export const pricingWarning = item => {
   return "";
 };
 export const rawPrice = (item, margins) => item.pricing_type === "fixed"
-  ? (purchaseSubtotal(item) + Number(item.fixed_markup_value || 0)) / amount(item)
+  ? calculationType(item) === "unidade"
+    ? cost(item) + Number(item.fixed_markup_value || 0)
+    : (purchaseSubtotal(item) + Number(item.fixed_markup_value || 0)) / amount(item)
   : cost(item) * (1 + margin(item, margins) / 100);
 export const price = (item, margins) => pricingWarning(item) ? 0 : Number(item.final_sale_price || 0) || applyRounding(rawPrice(item, margins), item.rounding_type || "automatic");
 export const sale = (item, margins) => price(item, margins) * amount(item);
